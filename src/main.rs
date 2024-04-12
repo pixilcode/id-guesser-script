@@ -11,8 +11,14 @@ fn main() {
     // get the URL path from the environment
     let path = get_env_variable("URL_PATH");
     
-    // get the session ID from the environment
-    let session_id = get_env_variable("SESSION_ID");
+    // get the session ID from the arguments (if provided)
+    // or prompt for a new one
+    let args: Vec<String> = env::args().collect();
+    let session_id = args.get(1);
+    let session_id = match session_id {
+        Some(session_id) => session_id.to_owned(),
+        None => prompt_session_id()
+    };
     let mut session_id_cookie = make_php_session_cookie(&session_id);
 
     // create a random number generator
@@ -105,7 +111,7 @@ fn get_env_variable(var: &str) -> String {
     match result {
         Ok(var) => var,
         Err(_) => {
-            eprintln!("ERROR: Must define {var} environment variable!");
+            eprintln!("ERROR: must define {var} environment variable!");
             std::process::exit(1);
         }
     }
@@ -113,8 +119,8 @@ fn get_env_variable(var: &str) -> String {
 
 /// prompt for a new session ID
 fn prompt_session_id() -> String {
-    eprintln!("ERROR: your session ID has expired");
-    eprint!("Please input a new session ID (value only): ");
+    eprintln!("ERROR: your session ID is invalid or has expired");
+    eprint!("please input a new session ID (value only): ");
 
     // read the session ID from stdin
     let mut session_id = String::new();
